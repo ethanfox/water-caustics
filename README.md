@@ -1,6 +1,6 @@
 # water-caustics
 
-Animated overhead-sun **water caustics** as a transparent canvas overlay (WebGL, with a Canvas 2D fallback). Other sites keep their own background — sand, a photo, a video, a page — and this package only draws the shimmering lines of light.
+Animated overhead-sun **water caustics** as a transparent canvas overlay (WebGL, with a Canvas 2D fallback). Other sites keep their own background — sand, a photo, a video, a page — and this package only draws soft shimmering ribbons of light.
 
 The included demo sits the shader on a SpongeBob title-card seafloor still (sandy floor, scattered dark rocks). That still is **demo-only** and is not published with the npm package.
 
@@ -29,7 +29,7 @@ The target element should already show your background. The overlay fills it.
   import { mountWaterCaustics } from "water-caustics";
 
   const water = mountWaterCaustics(document.getElementById("scene"), {
-    intensity: 1,
+    intensity: 0.85,
     speed: 1,
     scale: 1,
   });
@@ -60,13 +60,13 @@ WebGL is used when the browser can compile the shader. Otherwise the same patter
 
 | Option | Default | Meaning |
 | --- | --- | --- |
-| `intensity` | `1` | Brightness of the caustic veins |
+| `intensity` | `0.85` | Brightness of the caustic ribbons |
 | `speed` | `1` | Animation rate. `0` is still |
 | `scale` | `1` | How large the light network is |
 | `color` | `#f4fff8` | Highlight color (any CSS color) |
 | `tint` | `#2f7d88` | Water wash |
-| `tintStrength` | `0.12` | Wash opacity `0`–`1` |
-| `blendMode` | `normal` | CSS `mix-blend-mode` on the canvas |
+| `tintStrength` | `0.06` | Wash opacity `0`–`1` |
+| `blendMode` | `screen` | CSS `mix-blend-mode` on the canvas |
 | `maxDpr` | `2` | Device-pixel-ratio cap |
 
 ## Demo

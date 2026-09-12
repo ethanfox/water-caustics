@@ -1,6 +1,6 @@
 /** Options for {@link mountWaterCaustics}. */
 export type WaterCausticsOptions = {
-  /** Brightness of the caustic lines. Default `1`. */
+  /** Brightness of the caustic ribbons. Default `0.85`. */
   intensity?: number;
   /** Animation speed multiplier. Default `1`. `0` freezes the pattern. */
   speed?: number;
@@ -10,9 +10,9 @@ export type WaterCausticsOptions = {
   color?: string;
   /** Underwater wash color as any CSS color. Default `#2f7d88`. */
   tint?: string;
-  /** Tint opacity from `0`–`1`. Default `0.12`. */
+  /** Tint opacity from `0`–`1`. Default `0.06`. */
   tintStrength?: number;
-  /** CSS `mix-blend-mode` on the overlay canvas. Default `normal`. */
+  /** CSS `mix-blend-mode` on the overlay canvas. Default `screen`. */
   blendMode?: string;
   /** Cap for `devicePixelRatio`. Default `2`. */
   maxDpr?: number;
@@ -41,12 +41,12 @@ export type ResolvedOptions = {
 };
 
 export const DEFAULTS: ResolvedOptions = {
-  intensity: 1,
+  intensity: 0.85,
   speed: 1,
   scale: 1,
   color: "#f4fff8",
   tint: "#2f7d88",
-  tintStrength: 0.12,
-  blendMode: "normal",
+  tintStrength: 0.06,
+  blendMode: "screen",
   maxDpr: 2,
 };

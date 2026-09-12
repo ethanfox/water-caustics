@@ -1,7 +1,7 @@
 import { mountWaterCaustics } from "water-caustics";
 
 const defaults = {
-  intensity: 1.2,
+  intensity: 0.9,
   speed: 1,
   scale: 1,
   tintStrength: 0.05,

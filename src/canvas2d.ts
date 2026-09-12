@@ -2,7 +2,7 @@ import { sampleCaustic } from "./caustic-field";
 import type { ResolvedOptions } from "./types";
 import type { OverlayRenderer } from "./webgl";
 
-const MAX_COMPUTE = 220;
+const MAX_COMPUTE = 150;
 
 export type Canvas2DRenderer = OverlayRenderer & { kind: "canvas2d" };
 
@@ -46,7 +46,7 @@ export function createCanvas2DRenderer(
     }
 
     const now = performance.now();
-    if (lastDraw >= 0 && now - lastDraw < 33) {
+    if (lastDraw >= 0 && now - lastDraw < 50) {
       return;
     }
     lastDraw = now;

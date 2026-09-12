@@ -1,55 +1,143 @@
-/** JS port of the fragment shader so the Canvas 2D fallback matches WebGL. */
+/** Canvas port of the shader's domain-warped ridged fBm light ribbons. */
 
-function rotate(x: number, y: number, a: number): [number, number] {
-  const c = Math.cos(a);
-  const s = Math.sin(a);
-  return [c * x - s * y, s * x + c * y];
+const latticeCache = new Map<number, number>();
+
+function fract(value: number): number {
+  return value - Math.floor(value);
 }
 
-function octave(uvx: number, uvy: number, t: number, fi: number): number {
-  let [px, py] = rotate(uvx, uvy, 0.41 + fi * 2.39996323);
-  for (let k = 0; k < 2; k++) {
-    const fk = k;
-    const wx =
-      Math.sin(
-        py * (1.17 + fi * 0.19 + fk * 0.13) +
-          px * (0.23 + fi * 0.07) +
-          t * (0.31 + fi * 0.05) +
-          fi * 1.61 +
-          fk,
-      );
-    const wy =
-      Math.cos(
-        px * (0.89 + fi * 0.17 + fk * 0.11) -
-          py * (0.29 + fi * 0.09) -
-          t * (0.27 + fi * 0.04) +
-          fi * 1.13,
-      );
-    const amp = 0.46 / (1 + fi * 0.16 + fk * 0.11);
-    px += wx * amp;
-    py += wy * amp;
+function latticeKey(x: number, y: number, z: number): number {
+  return x * 16777216 + y * 4096 + z;
+}
+
+function latticeNoise(x: number, y: number, z: number): number {
+  const key = latticeKey(x, y, z);
+  const cached = latticeCache.get(key);
+  if (cached !== undefined) return cached;
+  if (latticeCache.size > 24000) latticeCache.clear();
+  const value = fract(
+    Math.sin(x * 127.1 + y * 311.7 + z * 74.7) * 43758.5453123,
+  );
+  latticeCache.set(key, value);
+  return value;
+}
+
+function mix(a: number, b: number, amount: number): number {
+  return a + (b - a) * amount;
+}
+
+function noise3(x: number, y: number, z: number): number {
+  const ix = Math.floor(x);
+  const iy = Math.floor(y);
+  const iz = Math.floor(z);
+  const fx = fract(x);
+  const fy = fract(y);
+  const fz = fract(z);
+  const ux = fx * fx * (3 - 2 * fx);
+  const uy = fy * fy * (3 - 2 * fy);
+  const uz = fz * fz * (3 - 2 * fz);
+  const low = mix(
+    mix(latticeNoise(ix, iy, iz), latticeNoise(ix + 1, iy, iz), ux),
+    mix(
+      latticeNoise(ix, iy + 1, iz),
+      latticeNoise(ix + 1, iy + 1, iz),
+      ux,
+    ),
+    uy,
+  );
+  const high = mix(
+    mix(
+      latticeNoise(ix, iy, iz + 1),
+      latticeNoise(ix + 1, iy, iz + 1),
+      ux,
+    ),
+    mix(
+      latticeNoise(ix, iy + 1, iz + 1),
+      latticeNoise(ix + 1, iy + 1, iz + 1),
+      ux,
+    ),
+    uy,
+  );
+  return mix(low, high, uz);
+}
+
+function turn(x: number, y: number): [number, number] {
+  return [x * 0.8 + y * 0.6, -x * 0.6 + y * 0.8];
+}
+
+function fbm(x: number, y: number, z: number): number {
+  let sum = 0;
+  let amplitude = 0.54;
+  for (let octave = 0; octave < 4; octave++) {
+    sum += noise3(x, y, z) * amplitude;
+    const rotated = turn(x, y);
+    x = rotated[0] * 2.03 + 1.7;
+    y = rotated[1] * 2.03 - 2.4;
+    z = z * 1.71 + 0.37;
+    amplitude *= 0.47;
   }
-  const d1x = 1.0 + fi * 0.21;
-  const d1y = 0.33 + fi * 0.13;
-  const d2x = -0.51 - fi * 0.11;
-  const d2y = 1.09 + fi * 0.08;
-  const ridge =
-    Math.sin(px * d1x + py * d1y + t * 0.09) *
-    Math.sin(px * d2x + py * d2y - t * 0.07);
-  return 0.165 / (Math.abs(ridge) * 5.6 + 0.22);
+  return sum / 1.017;
+}
+
+function ridgedFbm(x: number, y: number, z: number): number {
+  let sum = 0;
+  let amplitude = 0.52;
+  let normalizer = 0;
+  for (let octave = 0; octave < 5; octave++) {
+    const ridge = 1 - Math.abs(noise3(x, y, z) * 2 - 1);
+    sum += ridge * ridge * amplitude;
+    normalizer += amplitude;
+    const rotated = turn(x, y);
+    x = rotated[0] * 1.94 - 1.3;
+    y = rotated[1] * 1.94 + 2.1;
+    z = z * 1.67 + 0.29;
+    amplitude *= 0.48;
+  }
+  return sum / normalizer;
 }
 
 function field(uvx: number, uvy: number, t: number): number {
-  const px = uvx + Math.sin(uvy * 0.37 + t * 0.19) * 0.42;
-  const py = uvy + Math.cos(uvx * 0.31 - t * 0.15) * 0.42;
-  const a = octave(px, py, t, 0);
-  const p2 = rotate(px * 1.61803399 + 1.83, py * 1.61803399 - 1.27, 1.17809725);
-  const b = octave(p2[0], p2[1], t * 0.79, 1);
-  const p3 = rotate(px * 2.61803399 + 2.54, py * 2.61803399 - 0.74, 1.54809725);
-  const c = octave(p3[0], p3[1], t * 0.62, 2);
-  const acc = Math.max(a * 1.12, b * 0.78) + c * 0.34;
-  const clamped = Math.min(Math.max(acc, 0), 1.95);
-  return clamped ** 1.45;
+  const turnedUv = turn(uvx, uvy);
+  const broadWarpX =
+    fbm(uvx * 0.46 + 3.1, uvy * 0.46 - 1.7, t * 0.065) - 0.5;
+  const broadWarpY =
+    fbm(
+      turnedUv[0] * 0.41 - 5.8,
+      turnedUv[1] * 0.41 + 4.2,
+      t * 0.058 + 9.4,
+    ) - 0.5;
+  const fineWarpX =
+    fbm(
+      uvx * 0.82 + broadWarpX * 1.8,
+      uvy * 0.82 + broadWarpY * 1.8,
+      t * 0.091 + 17,
+    ) - 0.5;
+  const fineWarpY =
+    fbm(
+      turnedUv[0] * 0.76 - broadWarpX * 1.6,
+      turnedUv[1] * 0.76 - broadWarpY * 1.6,
+      t * 0.083 + 31,
+    ) - 0.5;
+
+  const px = uvx + broadWarpX * 1.16 + fineWarpX * 0.34;
+  const py = uvy + broadWarpY * 1.16 + fineWarpY * 0.34;
+  const turnedP = turn(px, py);
+  const first = ridgedFbm(px * 1.72, py * 1.72, t * 0.1 + 2);
+  const second = ridgedFbm(
+    turnedP[0] * 2.31 + 8.3,
+    turnedP[1] * 2.31 - 6.7,
+    t * 0.078 + 23,
+  );
+
+  const firstBody = smoothstep(0.43, 0.69, first);
+  const firstGlow = smoothstep(0.31, 0.6, first);
+  const crossing = smoothstep(0.49, 0.72, second);
+  const crossingGlow = smoothstep(0.36, 0.63, second);
+  const variation =
+    0.76 + fbm(px * 0.58 + 12, py * 0.58 + 12, t * 0.052 + 41) * 0.3;
+  const ribbons = Math.max(firstBody, crossing * 0.68);
+  const glow = Math.max(firstGlow * 0.58, crossingGlow * 0.34);
+  return Math.min(Math.max((ribbons * 0.72 + glow * 0.28) * variation, 0), 1);
 }
 
 function smoothstep(edge0: number, edge1: number, x: number): number {
@@ -70,19 +158,17 @@ export function sampleCaustic(
   tintStrength: number,
 ): [number, number, number, number] {
   const denom = Math.max(resY, 1);
-  const uvx = ((fragX * 2 - resX) / denom) * 1.72 * scale;
-  const uvy = ((fragY * 2 - resY) / denom) * 1.72 * scale;
-  const c = field(uvx, uvy, time * 0.36);
-  const veins = smoothstep(0.15, 1.08, c);
-  const haze = smoothstep(0.03, 0.78, c) * 0.3;
-  const glow = (veins * 0.9 + haze) * intensity;
-  const mix = Math.min(Math.max(glow, 0), 1);
-  const r = tint[0] + (color[0] - tint[0]) * mix;
-  const g = tint[1] + (color[1] - tint[1]) * mix;
-  const b = tint[2] + (color[2] - tint[2]) * mix;
+  const uvx = ((fragX * 2 - resX) / denom) * scale;
+  const uvy = ((fragY * 2 - resY) / denom) * scale;
+  const c = field(uvx, uvy, time * 0.32);
+  const glow = c * intensity;
+  const highlight = smoothstep(0.05, 1.05, glow);
+  const r = tint[0] + (color[0] - tint[0]) * highlight;
+  const g = tint[1] + (color[1] - tint[1]) * highlight;
+  const b = tint[2] + (color[2] - tint[2]) * highlight;
   const alpha = Math.min(
-    Math.max(tintStrength + glow * (0.88 - tintStrength * 0.35), 0),
-    1,
+    Math.max(tintStrength + glow * (0.34 - tintStrength * 0.1), 0),
+    0.48,
   );
   return [r, g, b, alpha];
 }
