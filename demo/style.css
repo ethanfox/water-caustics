@@ -28,7 +28,7 @@ body {
 .stage {
   position: fixed;
   inset: 0;
-  background: #d8d0ae url("/seafloor.png") center / cover no-repeat;
+  background: #d8d0ae url("/seafloor.jpg") center / cover no-repeat;
 }
 
 .error {
