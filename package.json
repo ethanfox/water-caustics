@@ -1,0 +1,42 @@
+{
+  "name": "water-caustics",
+  "version": "0.1.0",
+  "description": "Animated overhead-sun water caustics as a reusable WebGL canvas overlay.",
+  "type": "module",
+  "main": "./dist/water-caustics.js",
+  "module": "./dist/water-caustics.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/water-caustics.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "dev": "vite --config vite.config.ts",
+    "build": "vite build --config vite.lib.config.ts && tsc -p tsconfig.lib.json",
+    "build:demo": "vite build --config vite.config.ts",
+    "preview": "vite preview --config vite.config.ts --host --port 43173",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.lib.json --noEmit"
+  },
+  "keywords": [
+    "water",
+    "caustics",
+    "webgl",
+    "shader",
+    "canvas",
+    "overlay"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.2",
+    "vite": "^8.3.0"
+  }
+}

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Water Caustics — overhead sun overlay</title>
+    <meta
+      name="description"
+      content="Animated water-caustic light lines as a reusable WebGL overlay. Demo over a sandy seafloor."
+    />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <div
+      id="stage"
+      class="stage"
+      role="img"
+      aria-label="Sandy seafloor with scattered rocks and shimmering overhead-sun water caustics"
+    ></div>
+
+    <p id="error" class="error" hidden>
+      WebGL is unavailable, so the water overlay could not start. The seafloor
+      is still here — try a current browser with hardware acceleration on.
+    </p>
+
+    <aside class="hud" aria-label="Caustic controls">
+      <p class="eyebrow">npm · water-caustics</p>
+      <h1>Overhead sun on the sand</h1>
+      <p class="lede">
+        Bright caustic lines, mounted as a canvas overlay. Put any background
+        behind it — this demo uses the title-card seafloor still.
+      </p>
+
+      <div class="controls">
+        <label>
+          <span>Intensity <output id="intensity-out">1.20</output></span>
+          <input
+            id="intensity"
+            type="range"
+            min="0"
+            max="2"
+            step="0.05"
+            value="1.2"
+          />
+        </label>
+        <label>
+          <span>Speed <output id="speed-out">1.00</output></span>
+          <input
+            id="speed"
+            type="range"
+            min="0"
+            max="2.5"
+            step="0.05"
+            value="1"
+          />
+        </label>
+        <label>
+          <span>Scale <output id="scale-out">1.00</output></span>
+          <input
+            id="scale"
+            type="range"
+            min="0.4"
+            max="2.4"
+            step="0.05"
+            value="1"
+          />
+        </label>
+        <label>
+          <span>Tint <output id="tint-out">0.05</output></span>
+          <input
+            id="tint"
+            type="range"
+            min="0"
+            max="0.45"
+            step="0.01"
+            value="0.05"
+          />
+        </label>
+      </div>
+
+      <div class="actions">
+        <button id="toggle" type="button">Pause</button>
+        <button id="reset" type="button">Reset</button>
+      </div>
+    </aside>
+
+    <script type="module" src="/main.ts"></script>
+  </body>
+</html>
